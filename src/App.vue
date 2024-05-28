@@ -3,22 +3,82 @@ import { ref } from 'vue';
 import {
     VueFlow,
     useVueFlow,
+    Position,
 } from '@vue-flow/core';
+import { Background } from '@vue-flow/background';
+import { MiniMap } from '@vue-flow/minimap';
+import {
+    ControlButton,
+    Controls,
+} from '@vue-flow/controls';
+import Icon from './components/Icon.vue';
+import CustomNode from '@/components/CustomNode.vue';
+import NodeInfo from '@/components/NodeInfo.vue';
+import DropzoneBackground from '@/components/DropzoneBackground.vue';
+import useDragAndDrop from './composables/useDnD';
+import Sidebar from '@/components/Sidebar.vue';
+
+const {
+    addNodes,
+    removeNodes,
+    findNode,
+    addEdges,
+    onConnect,
+    setViewport,
+    toObject,
+} = useVueFlow();
+
+const { onDragOver, onDrop, onDragLeave, isDragOver } = useDragAndDrop();
+
+// our dark mode toggle flag
+const dark = ref(false);
 
 const initialNodes = ref([
     {
-        id:       '1',
-        position: { x: 50, y: 50 },
-        label:    'Node 1',
+        id:             '1',
+        position:       { x: 50, y: 50 },
+        label:          'Node 1',
+        type:           'custom', // You can omit this as it's the fallback type
+        targetPosition: Position.Top, // or Bottom, Left, Right,
+        sourcePosition: Position.Bottom, // or Top, Left, Right,
     },
+    // {
+    //     id:             '1',
+    //     position:       { x: 50, y: 50 },
+    //     label:          'Node 1',
+    //     type:           'output', // You can omit this as it's the fallback type
+    //     targetPosition: Position.Top, // or Bottom, Left, Right,
+    //     sourcePosition: Position.Bottom, // or Top, Left, Right,
+    // },
+    // {
+    //     id:             '2',
+    //     position:       { x: 250, y: 250 },
+    //     label:          'Node 2',
+    //     type:           'default', // You can omit this as it's the fallback type
+    //     targetPosition: Position.Top, // or Bottom, Left, Right,
+    //     sourcePosition: Position.Bottom, // or Top, Left, Right,
+    // },
 ]);
-const { addNodes, removeNodes } = useVueFlow();
+
+const initialEdges = ref([
+    // {
+    //     id: 'e1-2',
+    //     source: '1',
+    //     target: '2',
+    //     animated: true,
+    // },
+]);
 
 function generateRandomNode() {
     return {
-        id:       Math.random().toString(),
-        position: { x: Math.random() * 500, y: Math.random() * 500 },
-        label:    'Random Node',
+        id: Math.random().toString(),
+        // position:       { x: Math.random() * 500, y: Math.random() * 500 },
+        position:       { x: 16, y: 75 },
+        label:          'Random Node',
+        connectable:    true,
+        type:           'default', // You can omit this as it's the fallback type
+        targetPosition: Position.Top, // or Bottom, Left, Right,
+        sourcePosition: Position.Bottom, // or Top, Left, Right,
     };
 }
 
@@ -34,31 +94,139 @@ function onAddNodes() {
 
 // remove a single node from the graph
 function onRemoveNode() {
-    removeNodes('1')
+    removeNodes('1');
 }
 
 // remove multiple nodes from the graph
 function onRemoveNodes() {
-    removeNodes(['1', '2'])
+    removeNodes([ '1', '2' ]);
+}
+
+function onSomeEvent(nodeId) {
+    // const node = initialNodes.value.find((node) => node.id == nodeId)
+    const node = findNode('1');
+    if (node) {
+        node.label = 'Node custom';
+    }
+    // node.data = {
+    //     ...node.data,
+    //     hello: 'world',
+    // }
+    //
+    // // you can also mutate properties like `selectable` or `draggable`
+    // node.selectable = false
+    // node.draggable = false
+}
+
+/**
+ * onConnect is called when a new connection is created.
+ *
+ * You can add additional properties to your new edge (like a type or label) or block the creation altogether by not calling `addEdges`
+ */
+onConnect((connection) => {
+    addEdges(connection);
+});
+
+/**
+ * toObject transforms your current graph data to an easily persist-able object
+ */
+function logToObject() {
+    console.log(toObject());
+}
+
+/**
+ * Resets the current viewport transformation (zoom & pan)
+ */
+function resetTransform() {
+    setViewport({ x: 0, y: 0, zoom: 1 });
+}
+
+function toggleDarkMode() {
+    dark.value = !dark.value;
 }
 </script>
 
 <template>
-    <VueFlow :nodes="initialNodes"/>
+    <div
+        class="dndflow"
+        @drop="onDrop"
+    >
+        <VueFlow
+            :class="{ dark }"
+            class="basicflow"
+            :nodes="initialNodes"
+            :edges="initialEdges"
+            :default-viewport="{ zoom: 1 }"
+            :min-zoom="0.2"
+            :max-zoom="4"
+            @dragover="onDragOver"
+            @dragleave="onDragLeave"
+        >
+            <template #node-custom="customNodeProps">
+                <CustomNode v-bind="customNodeProps"/>
+            </template>
+            
+            <template #node-info="customNodeProps">
+                <NodeInfo v-bind="customNodeProps"/>
+            </template>
+            
+            <Background
+                pattern-color="#aaa"
+                :gap="16"
+            />
+            
+            <MiniMap/>
+            
+            <DropzoneBackground
+                :style="{
+                backgroundColor: isDragOver ? '#e7f3ff' : 'transparent',
+                transition: 'background-color 0.2s ease',
+            }"
+            />
+            
+            <Controls position="top-right">
+                <ControlButton
+                    title="Reset Transform"
+                    @click="resetTransform"
+                >
+                    <Icon name="reset"/>
+                </ControlButton>
+                
+                <ControlButton
+                    title="Toggle Dark Mode"
+                    @click="toggleDarkMode"
+                >
+                    <Icon
+                        v-if="dark"
+                        name="sun"
+                    />
+                    <Icon
+                        v-else
+                        name="moon"
+                    />
+                </ControlButton>
+                
+                <ControlButton
+                    title="Log `toObject`"
+                    @click="logToObject"
+                >
+                    <Icon name="log"/>
+                </ControlButton>
+            </Controls>
+        </VueFlow>
+        
+        <Sidebar />
+    </div>
     
-    <button
-        type="button"
-        @click="onAddNode"
-    >Add a node
-    </button>
-    <button
-        type="button"
-        @click="onAddNodes"
-    >Add multiple nodes
-    </button>
-    <button
-        type="button"
-        @click="onRemoveNode"
-    >Remove a node
-    </button>
+    <!--<div class="main-buttons">-->
+    <!--    <button-->
+    <!--        type="button"-->
+    <!--        @click="onAddNode"-->
+    <!--    >Новый узел-->
+    <!--    </button>-->
+    <!--</div>-->
 </template>
+
+<style lang="scss">
+@import 'style/main';
+</style>
