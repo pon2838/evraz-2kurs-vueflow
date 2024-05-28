@@ -73,6 +73,11 @@
     background-color: var(--vf-node-bg);
 }
 
+.vue-flow__node-info,
+.vue-flow__node-default {
+    padding: 0;
+}
+
 .dndflow {
     flex-direction: column;
     display:        flex;
@@ -108,6 +113,29 @@
 .dndflow .vue-flow-wrapper {
     flex-grow: 1;
     height:    100%
+}
+
+.node {
+    &-body {
+        padding: 10px;
+        position: relative;
+
+        &:hover {
+            .node-helper {
+                display:          block;
+                background-color: red;
+            }
+        }
+    }
+
+    &-helper {
+        display:  none;
+        position: absolute;
+        left:     -20px;
+        right:    -20px;
+        bottom:   -20px;
+        top:      -20px;
+    }
 }
 
 @media screen and (min-width: 640px) {

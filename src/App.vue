@@ -13,7 +13,6 @@ import {
 } from '@vue-flow/controls';
 import Icon from './components/Icon.vue';
 import CustomNode from '@/components/CustomNode.vue';
-import NodeInfo from '@/components/NodeInfo.vue';
 import DropzoneBackground from '@/components/DropzoneBackground.vue';
 import useDragAndDrop from './composables/useDnD';
 import Sidebar from '@/components/Sidebar.vue';
@@ -34,14 +33,14 @@ const { onDragOver, onDrop, onDragLeave, isDragOver } = useDragAndDrop();
 const dark = ref(false);
 
 const initialNodes = ref([
-    {
-        id:             '1',
-        position:       { x: 50, y: 50 },
-        label:          'Node 1',
-        type:           'custom', // You can omit this as it's the fallback type
-        targetPosition: Position.Top, // or Bottom, Left, Right,
-        sourcePosition: Position.Bottom, // or Top, Left, Right,
-    },
+    // {
+    //     id:             '1',
+    //     position:       { x: 50, y: 50 },
+    //     label:          'Node 1',
+    //     type:           'custom', // You can omit this as it's the fallback type
+    //     targetPosition: Position.Top, // or Bottom, Left, Right,
+    //     sourcePosition: Position.Bottom, // or Top, Left, Right,
+    // },
     // {
     //     id:             '1',
     //     position:       { x: 50, y: 50 },
@@ -162,12 +161,16 @@ function toggleDarkMode() {
             @dragover="onDragOver"
             @dragleave="onDragLeave"
         >
-            <template #node-custom="customNodeProps">
+            <!--<template #node-custom="customNodeProps">-->
+            <!--    <CustomNode v-bind="customNodeProps"/>-->
+            <!--</template>-->
+            
+            <template #node-info="customNodeProps">
                 <CustomNode v-bind="customNodeProps"/>
             </template>
             
-            <template #node-info="customNodeProps">
-                <NodeInfo v-bind="customNodeProps"/>
+            <template #node-default="customNodeProps">
+                <CustomNode v-bind="customNodeProps"/>
             </template>
             
             <Background
