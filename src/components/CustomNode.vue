@@ -10,12 +10,13 @@ const inputValue = ref('')
 </script>
 
 <template>
-    <!--<div>-->
-    <!--    <Handle type="target" :position="Position.Top" />-->
-    <!--    <div>{{ label }}</div>-->
-    <!--    <Handle type="source" :position="Position.Bottom" />-->
-    <!--</div>-->
-    <div class="custom-node-container">
-        <input class="nodrag" v-model="inputValue" />
+    <div class="node-body">
+        <Handle type="target" :position="Position.Top" />
+        <div>{{ label }}</div>
+        <Handle type="source" :position="Position.Bottom" />
+        <div class="node-helper"></div>
     </div>
+    <!--<div class="custom-node-container">-->
+    <!--    <input class="nodrag" v-model="inputValue" />-->
+    <!--</div>-->
 </template>
